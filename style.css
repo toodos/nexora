@@ -632,18 +632,18 @@ html, body {
 .ctrl-btn::before {
   content: '';
   position: absolute;
-  inset: -3px;
+  inset: -4px;
   border-radius: 50%;
   background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #8b00ff, #ff0000);
   background-size: 400% 100%;
   opacity: 0;
   z-index: -1;
-  transition: opacity 0.3s ease;
-  filter: blur(4px);
+  transition: opacity 0.4s ease;
+  filter: blur(8px);
 }
 .ctrl-btn:hover::before {
-  opacity: 1;
-  animation: rainbow-shift 2s linear infinite;
+  opacity: 0.45;
+  animation: rainbow-shift 3s linear infinite;
 }
 .ctrl-btn span { display: none; }
 .ctrl-btn:hover { background: var(--input-bg); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
