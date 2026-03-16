@@ -11,3 +11,6 @@ This project is licensed under the MIT License.
 - Open Browser to localhost:3000
 - Enter Name and Room ID
 - Start Session
+
+## Contributing
+Contributions are welcome! Please open an issue first.
