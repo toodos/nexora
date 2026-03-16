@@ -9,7 +9,7 @@ const express    = require('express');
 const http       = require('http');
 const { Server } = require('socket.io');
 const path       = require('path');
-const https = require('https');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app    = express();
 const server = http.createServer(app);
@@ -19,9 +19,10 @@ const io     = new Server(server, {
   pingInterval: 10000
 });
 
-// OpenRouter AI
-const OPENROUTER_KEY = "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";
-const AI_MODEL = "google/gemini-2.0-flash-001";
+// Google Gemini AI
+const GEMINI_KEY = process.env.GEMINI_API_KEY || "AIzaSyCU0O26omNPOpDcnhZAkuTfDXik9rpLvGI";
+const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+const geminiModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
 app.use(express.static(path.join(__dirname)));
 
@@ -289,55 +290,15 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('quiz-reset');
   });
 
-  /* AI ASSISTANT (OpenRouter) ---------------------------------------------- */
+  /* AI ASSISTANT (Google Gemini) ------------------------------------------- */
   socket.on('ai-chat', async ({ prompt }) => {
     try {
-      const data = JSON.stringify({
-        model: AI_MODEL,
-        messages: [{ role: "user", content: prompt }]
-      });
-
-      const options = {
-        hostname: 'openrouter.ai',
-        path: '/api/v1/chat/completions',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(data),
-          'Authorization': `Bearer ${OPENROUTER_KEY}`,
-          'HTTP-Referer': 'http://localhost:3000',
-          'X-Title': 'Nexora'
-        }
-      };
-
-      const req = https.request(options, (res) => {
-        let body = '';
-        res.on('data', chunk => body += chunk);
-        res.on('end', () => {
-          try {
-            const json = JSON.parse(body);
-            if (json.choices && json.choices[0]) {
-              socket.emit('ai-response', { text: json.choices[0].message.content });
-            } else {
-              console.error('[OpenRouter]', json);
-              socket.emit('ai-response', { text: "AI couldn't respond. Try again.", error: true });
-            }
-          } catch (e) {
-            socket.emit('ai-response', { text: "Error processing AI response.", error: true });
-          }
-        });
-      });
-
-      req.on('error', err => {
-        console.error('[OpenRouter]', err.message);
-        socket.emit('ai-response', { text: "AI request failed.", error: true });
-      });
-
-      req.write(data);
-      req.end();
+      const result = await geminiModel.generateContent(prompt);
+      const text = result.response.text();
+      socket.emit('ai-response', { text });
     } catch (error) {
-      console.error('[AI]', error.message);
-      socket.emit('ai-response', { text: "Unexpected AI error.", error: true });
+      console.error('[Gemini]', error.message);
+      socket.emit('ai-response', { text: "AI is unavailable right now. Please try again.", error: true });
     }
   });
 
