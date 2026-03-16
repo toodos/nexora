@@ -22,7 +22,10 @@ const io     = new Server(server, {
 // Google Gemini AI
 const GEMINI_KEY = process.env.GEMINI_API_KEY || "AIzaSyCU0O26omNPOpDcnhZAkuTfDXik9rpLvGI";
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-const geminiModel = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-lite-preview' });
+const geminiModel = genAI.getGenerativeModel({ 
+  model: 'gemini-3.1-flash-lite-preview',
+  systemInstruction: "You are the Nexora Study Assistant. Your primary goal is to help students with their academic queries, explain complex concepts simply, and provide study tips. Nexora is a premium virtual classroom platform that features real-time video/audio, an interactive whiteboard, and AI-driven support. You should be encouraging, professional, and knowledgeable about both general academic subjects and the Nexora platform itself. If asked about your creators or Nexora, represent it as a cutting-edge tool for modern education. Keep responses concise and focused on learning."
+});
 
 app.use(express.static(path.join(__dirname)));
 
