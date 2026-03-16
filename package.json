@@ -1,0 +1,15 @@
+{
+  "name": "nexora",
+  "version": "2.0.0",
+  "description": "Nexora — Multi-user classroom: WebRTC + Quiz + Chat + Whiteboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npx nodemon server.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
+}
