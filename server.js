@@ -22,7 +22,7 @@ const io     = new Server(server, {
 // Google Gemini AI
 const GEMINI_KEY = process.env.GEMINI_API_KEY || "AIzaSyCU0O26omNPOpDcnhZAkuTfDXik9rpLvGI";
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-const geminiModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+const geminiModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
 app.use(express.static(path.join(__dirname)));
 
