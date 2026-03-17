@@ -1767,7 +1767,7 @@ aiToggle?.addEventListener('change', () => {
   socket?.emit('toggle-ai', { enabled: aiToggle.checked });
 });
 
-document.getElementById('closeRightPanelBtn')?.addEventListener('click', closeRightPanel);
+rpClose?.addEventListener('click', closeRightPanel);
 
 // Sync with URL on load
 window.addEventListener('load', () => {
