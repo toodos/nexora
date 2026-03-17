@@ -9,9 +9,13 @@
   },
   "dependencies": {
     "axios": "^1.13.6",
+    "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^4.18.2",
+    "multer": "^2.1.1",
     "openai": "^6.31.0",
+    "pdf-parse": "^2.4.5",
+    "pptx-text-parser": "^1.1.1",
     "socket.io": "^4.7.2"
   }
 }
