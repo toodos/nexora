@@ -1409,6 +1409,7 @@ function openPanel(name) {
 }
 
 function closeRightPanel() {
+  console.log('[Panel] Closing right panel');
   rightPanel.classList.remove('open');
   chatPanelOpen = false;
   document.querySelectorAll('.sn-btn').forEach(b => b.classList.remove('active'));
@@ -1767,7 +1768,10 @@ aiToggle?.addEventListener('change', () => {
   socket?.emit('toggle-ai', { enabled: aiToggle.checked });
 });
 
-rpClose?.addEventListener('click', closeRightPanel);
+document.getElementById('mobileCloseBtn')?.addEventListener('click', (e) => {
+  console.log('[Click] Mobile close button tapped');
+  closeRightPanel();
+});
 
 // Sync with URL on load
 window.addEventListener('load', () => {

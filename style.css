@@ -751,6 +751,7 @@ input:focus, textarea:focus {
   padding: 2px 6px; border-radius: 10px;
   margin-left: 4px;
 }
+.rp-close-btn { display: none; }
 .rp-close:hover { background: rgba(0,0,0,0.08); color: var(--text); }
 
 .rp-body { display: none !important; }
@@ -977,21 +978,22 @@ input:focus, textarea:focus {
   .right-panel.open { transform: translateX(0); }
   
   .rp-close-btn {
-    display: flex !important;
-    position: absolute; top: 12px; right: 16px;
-    width: 36px; height: 36px;
+    display: flex;
+    position: absolute; top: 8px; right: 12px;
+    width: 40px; height: 40px; /* Slightly larger for easier tapping */
     align-items: center; justify-content: center;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 50%;
     color: #fff;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
-    z-index: 10001; /* Above everything in the panel */
-    backdrop-filter: blur(5px);
+    z-index: 99999 !important; /* Ensure it's on top of EVERYTHING */
+    backdrop-filter: blur(10px);
     transition: all 0.2s;
+    pointer-events: auto !important;
   }
-  .rp-close-btn:active { transform: scale(0.9); }
+  .rp-close-btn:active { background: rgba(0,0,0,0.8); transform: scale(0.9); }
 
   .video-grid { 
     display: flex; 
