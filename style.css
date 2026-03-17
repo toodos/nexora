@@ -3,8 +3,8 @@
    Glassmorphism · Soft pastel palette · SaaS dashboard aesthetic
    Inspired by Figma/Slack UI — completely NOT Zoom/Meet.
    ═══════════════════════════════════════════════════════════════ */
-
 /* ── Reset ──────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   /* Apple-style Light Palette */
@@ -657,7 +657,10 @@ html, body {
   transition: opacity 0.4s ease;
   filter: blur(8px);
 }
-.ctrl-btn:hover::before {
+.ctrl-btn:hover::before,
+.ctrl-btn.off::before,
+.ctrl-btn.screen-on::before,
+.ctrl-btn.canvas-on::before {
   opacity: 0.45;
   animation: rainbow-shift 3s linear infinite;
 }
@@ -1059,7 +1062,10 @@ input:focus, textarea:focus {
 .ai-bubble {
   padding: 10px 14px;
   border-radius: 18px;
+  font-family: 'Roboto', sans-serif;
   font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
   line-height: 1.5;
   position: relative;
   box-shadow: 0 2px 8px var(--shadow);
@@ -1095,7 +1101,7 @@ input:focus, textarea:focus {
   border-radius: 12px;
   padding: 10px 16px;
   color: #fff !important;
-  font-family: inherit;
+  font-family: 'Roboto', sans-serif;
   font-size: 14px;
   resize: none;
   max-height: 100px;
@@ -1117,6 +1123,48 @@ input:focus, textarea:focus {
   width: fit-content;
   border: 1px solid var(--border);
 }
+
+/* TTS Rainbow Glow */
+.ai-tts-rainbow {
+  position: relative;
+  z-index: 1;
+}
+.ai-tts-rainbow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #8b00ff, #ff0000);
+  background-size: 400% 100%;
+  z-index: -1;
+  animation: rainbow-shift 3s linear infinite;
+  filter: blur(8px);
+  opacity: 0.8;
+}
+
+.ai-replay-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  opacity: 0.4;
+  transition: all 0.2s;
+  border-radius: 50%;
+}
+.ai-msg.user .ai-replay-btn { display: none; }
+.ai-replay-btn:hover {
+  opacity: 1;
+  color: var(--accent);
+  background: rgba(0,0,0,0.05);
+}
+.ai-msg.bot .ai-bubble { padding-right: 30px; }
 
 .dot {
   width: 6px;

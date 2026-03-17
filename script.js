@@ -187,7 +187,7 @@ class PeerManager {
       nameLabel.className = 'tile-footer';
       nameLabel.innerHTML = `
         <span class="tile-name">${peerName || 'Peer'}</span>
-        <span class="tile-role-tag ${peerRole}">${peerRole === 'teacher' ? 'HOST' : 'STUDENT'}</span>
+        <span class="tile-role-tag ${peerRole}">${peerRole === 'teacher' ? 'TEACHER' : 'STUDENT'}</span>
       `;
 
       container.appendChild(videoEl);
@@ -357,12 +357,12 @@ class PeerManager {
         teacherTile.innerHTML = `
           <div class="tile-placeholder" id="teacherPlaceholder">
             <div class="tile-avatar" id="teacherAvatarEl">T</div>
-            <p class="tile-waiting">Waiting for host…</p>
+            <p class="tile-waiting">Waiting for teacher…</p>
           </div>
           <video id="teacherVideoEl" autoplay playsinline></video>
           <div class="tile-footer">
             <span id="teacherNameEl" class="tile-name">Teacher</span>
-            <span class="tile-role-tag">HOST</span>
+            <span class="tile-role-tag">TEACHER</span>
             <span class="tile-muted-icon" id="teacherMutedEl" style="display:none">🔇</span>
           </div>
         `;
@@ -1064,7 +1064,7 @@ async function startSession(role) {
 }
 
 function setupRoleUI() {
-  myRoleBadge.textContent = myRole === 'teacher' ? '⬡ Host' : '◈ Student';
+  myRoleBadge.textContent = myRole === 'teacher' ? '⬡ Teacher' : '◈ Student';
   myRoleBadge.className = `role-badge${myRole === 'student' ? ' student' : ''}`;
 
   if (myRole === 'teacher') {
@@ -1484,9 +1484,46 @@ function sendAIChat() {
 function renderAIMessage(text, sender, isError) {
   const d = document.createElement('div');
   d.className = `ai-msg ${sender}`;
-  d.innerHTML = `<div class="ai-bubble ${isError ? 'error' : ''}">${escapeHtml(text)}</div>`;
+  
+  if (sender === 'bot' && !isError) {
+    d.innerHTML = `
+      <div class="ai-bubble">
+        ${escapeHtml(text)}
+        <button class="ai-replay-btn" title="Replay Voice">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+      </div>`;
+    
+    // Add replay listener
+    const btn = d.querySelector('.ai-replay-btn');
+    btn.addEventListener('click', () => speakText(text));
+  } else {
+    d.innerHTML = `<div class="ai-bubble ${isError ? 'error' : ''}">${escapeHtml(text)}</div>`;
+  }
+  
   aiMessages.appendChild(d);
   aiMessages.scrollTop = aiMessages.scrollHeight;
+
+  if (sender === 'bot' && !isError && aiTtsEnabled) {
+    speakText(text);
+  }
+}
+
+async function speakText(text) {
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!res.ok) throw new Error('TTS Fetch Failed');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.play();
+  } catch (err) {
+    console.error('[TTS]', err.message);
+  }
 }
 
 function showAILoading() {
@@ -1636,8 +1673,21 @@ chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKe
 chatInput.addEventListener('focus', () => { unreadChat = 0; chatBadge.style.display = 'none'; rpChatBadge.style.display = 'none'; });
 
 // AI Assistant
+let aiTtsEnabled = false;
 aiSend.addEventListener('click', sendAIChat);
 aiInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIChat(); } });
+
+if (typeof aiTtsToggle !== 'undefined' && aiTtsToggle) {
+  aiTtsToggle.addEventListener('click', () => {
+    aiTtsEnabled = !aiTtsEnabled;
+    aiTtsToggle.style.opacity = aiTtsEnabled ? '1' : '0.6';
+    aiTtsToggle.style.color = aiTtsEnabled ? 'var(--blue)' : '';
+    if (aiTtsEnabled) aiTtsToggle.classList.add('ai-tts-rainbow');
+    else aiTtsToggle.classList.remove('ai-tts-rainbow');
+    if (!aiTtsEnabled && window.speechSynthesis) window.speechSynthesis.cancel();
+    showToast(aiTtsEnabled ? 'AI Voice Enabled' : 'AI Voice Disabled');
+  });
+}
 
 // Canvas toolbar
 document.querySelectorAll('.ct-btn[data-tool]').forEach(btn => {

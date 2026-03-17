@@ -9,7 +9,8 @@ const express    = require('express');
 const http       = require('http');
 const { Server } = require('socket.io');
 const path       = require('path');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { OpenAI } = require('openai');
+const axios      = require('axios');
 
 const app    = express();
 const server = http.createServer(app);
@@ -20,14 +21,58 @@ const io     = new Server(server, {
 });
 
 // Google Gemini AI
-const GEMINI_KEY = process.env.GEMINI_API_KEY || "AIzaSyCU0O26omNPOpDcnhZAkuTfDXik9rpLvGI";
-const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-const geminiModel = genAI.getGenerativeModel({ 
-  model: 'gemini-3.1-flash-lite-preview',
-  systemInstruction: "You are the Nexora Study Assistant. Your primary goal is to help students with their academic queries, explain complex concepts simply, and provide study tips. Nexora is a premium virtual classroom platform. STRICT RULES: 1. Focus exclusively on academic, educational, and professional topics. 2. If asked about 18+, inappropriate, or NSFW content, politely refuse to answer and redirect the conversation back to studies. 3. Do not engage in casual chat that is entirely unrelated to education or the Nexora platform. 4. If asked about Nexora, represent it as a cutting-edge tool for modern education. Be encouraging and knowledgeable."
+require('dotenv').config();
+const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || "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";
+const openai = new OpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: OPENROUTER_KEY,
 });
+const systemInstruction = "You are the Nexora Study Assistant. Your primary goal is to help students with their academic queries, explain complex concepts simply, and provide study tips. Nexora is a premium virtual classroom platform. STRICT RULES: 1. Focus exclusively on academic, educational, and professional topics. 2. If asked about 18+, inappropriate, or NSFW content, politely refuse to answer and redirect the conversation back to studies. 3. Do not engage in casual chat that is entirely unrelated to education or the Nexora platform. 4. If asked about Nexora, represent it as a cutting-edge tool for modern education. Be encouraging and knowledgeable.";
+
+// Cartesia TTS Config
+const CARTESIA_KEY = process.env.CARTESIA_API_KEY;
+const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID;
 
 app.use(express.static(path.join(__dirname)));
+app.use(express.json());
+
+// TTS Proxy Endpoint
+app.post('/api/tts', async (req, res) => {
+  const { text } = req.body;
+  if (!text || !CARTESIA_KEY) return res.status(400).send('Missing text or API key');
+
+  try {
+    const response = await axios({
+      method: 'post',
+      url: 'https://api.cartesia.ai/tts/bytes',
+      headers: {
+        'Cartesia-Version': '2024-06-10',
+        'X-API-Key': CARTESIA_KEY,
+        'Content-Type': 'application/json'
+      },
+      data: {
+        model_id: 'sonic-english',
+        voice: {
+          mode: 'id',
+          id: CARTESIA_VOICE_ID || '95d51f79-c397-46f9-b49a-23763d3eaa2d'
+        },
+        output_format: {
+          container: 'mp3',
+          sample_rate: 44100,
+          bit_rate: 128000
+        },
+        transcript: text
+      },
+      responseType: 'arraybuffer'
+    });
+
+    res.set('Content-Type', 'audio/mpeg');
+    res.send(Buffer.from(response.data));
+  } catch (error) {
+    console.error('[Cartesia Error]', error.response?.data?.toString() || error.message);
+    res.status(500).send('TTS Failed');
+  }
+});
 
 /* ─────────────────────────────────────────────────────────
    IN-MEMORY STORE
@@ -158,15 +203,24 @@ io.on('connection', (socket) => {
   socket.on('screen-share-stopped', () => { const r=socket.data.roomId; if(r) socket.to(r).emit('peer-screen-share-stopped',{from:socket.id}); });
 
   /* CHAT -------------------------------------------------------------------- */
+  const badWords = ['sex', 'fuck', 'shit', 'bitch', 'ass', 'dick', 'cunt', 'pussy'];
   socket.on('chat-message', ({ text }) => {
     const roomId = socket.data.roomId;
     const room   = rooms[roomId];
     if (!room || !text?.trim()) return;
+    
+    // Profanity Filter
+    let cleanText = text.trim().slice(0, 500);
+    badWords.forEach(word => {
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      cleanText = cleanText.replace(regex, '*'.repeat(word.length));
+    });
+
     const msg = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
       senderId: socket.id, senderName: socket.data.name || 'User',
       role: socket.data.role || 'student',
-      text: text.trim().slice(0, 500), ts: Date.now()
+      text: cleanText, ts: Date.now()
     };
     room.chat.push(msg);
     if (room.chat.length > 50) room.chat.shift();
@@ -293,14 +347,20 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('quiz-reset');
   });
 
-  /* AI ASSISTANT (Google Gemini) ------------------------------------------- */
+  /* AI ASSISTANT (OpenRouter) ------------------------------------------- */
   socket.on('ai-chat', async ({ prompt }) => {
     try {
-      const result = await geminiModel.generateContent(prompt);
-      const text = result.response.text();
+      const completion = await openai.chat.completions.create({
+        model: "arcee-ai/trinity-mini:free",
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user", content: prompt }
+        ]
+      });
+      const text = completion.choices[0].message.content;
       socket.emit('ai-response', { text });
     } catch (error) {
-      console.error('[Gemini]', error.message);
+      console.error('[OpenRouter]', error.message);
       socket.emit('ai-response', { text: "AI is unavailable right now. Please try again.", error: true });
     }
   });
