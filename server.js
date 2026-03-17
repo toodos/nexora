@@ -95,7 +95,7 @@ const submissions = {};   // roomId → { qIdx → { socketId: answerIdx } }
    HELPERS
 ───────────────────────────────────────────────────────── */
 function getRoom(id) {
-  if (!rooms[id]) rooms[id] = { peers: new Map(), teacherId: null, locked: false, chat: [], canvas: [] };
+  if (!rooms[id]) rooms[id] = { peers: new Map(), teacherId: null, locked: false, aiEnabled: true, chat: [], canvas: [] };
   return rooms[id];
 }
 
@@ -347,17 +347,31 @@ io.on('connection', (socket) => {
   });
 
   socket.on('reset-quiz', ({ roomId }) => {
-    const room=rooms[roomId];
-    if (!room||room.teacherId!==socket.id) return;
+    const room = rooms[roomId];
+    if (!room || room.teacherId !== socket.id) return;
     delete quizzes[roomId]; delete scores[roomId]; delete submissions[roomId];
     io.to(roomId).emit('quiz-reset');
   });
 
+  socket.on('toggle-ai', ({ enabled }) => {
+    const rid = socket.data.roomId;
+    const room = rooms[rid];
+    if (!room || room.teacherId !== socket.id) return;
+    room.aiEnabled = !!enabled;
+    io.to(rid).emit('ai-status-changed', { enabled: room.aiEnabled });
+    console.log(`  [ai] ${rid} enabled: ${room.aiEnabled}`);
+  });
+
   /* AI ASSISTANT (OpenRouter) ------------------------------------------- */
   socket.on('ai-chat', async ({ prompt }) => {
+    const rid = socket.data.roomId;
+    const room = rooms[rid];
+    if (room && !room.aiEnabled && socket.data.role === 'student') {
+      return socket.emit('ai-response', { text: "The teacher has disabled the AI Assistant for this session.", error: true });
+    }
     try {
       const completion = await openai.chat.completions.create({
-        model: "arcee-ai/trinity-mini:free",
+        model: "openrouter/auto",
         messages: [
           { role: "system", content: systemInstruction },
           { role: "user", content: prompt }

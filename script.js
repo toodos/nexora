@@ -575,6 +575,7 @@ const toast = $('toast');
 const leaveModal = $('leaveModal');
 const confirmLeaveBtn = $('confirmLeaveBtn');
 const cancelLeaveBtn = $('cancelLeaveBtn');
+const aiToggle = $('aiToggle');
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  UTILITIES
@@ -1063,6 +1064,22 @@ async function startSession(role) {
   socket.on('ai-response', ({ text, error }) => {
     removeAILoading();
     renderAIMessage(text, 'bot', error);
+  });
+
+  socket.on('ai-status-changed', ({ enabled }) => {
+    if (myRole === 'student') {
+      const aiInput = document.getElementById('aiInput');
+      const aiSend = document.getElementById('aiSend');
+      if (aiInput) aiInput.disabled = !enabled;
+      if (aiSend) aiSend.disabled = !enabled;
+      if (!enabled) {
+        showToast('AI Assistant has been disabled by the teacher');
+        aiInput.placeholder = 'AI Disabled';
+      } else {
+        showToast('AI Assistant is now available');
+        aiInput.placeholder = 'Ask AI...';
+      }
+    }
   });
 }
 
@@ -1745,6 +1762,10 @@ startQuizBtn.addEventListener('click', () => socket.emit('start-quiz', { roomId 
 nextQBtn.addEventListener('click', () => socket.emit('next-question', { roomId }));
 endQuizBtn.addEventListener('click', () => socket.emit('end-quiz', { roomId }));
 resetQuizBtn.addEventListener('click', () => socket.emit('reset-quiz', { roomId }));
+
+aiToggle?.addEventListener('change', () => {
+  socket?.emit('toggle-ai', { enabled: aiToggle.checked });
+});
 
 // Sync with URL on load
 window.addEventListener('load', () => {
