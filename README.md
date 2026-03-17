@@ -1,5 +1,4 @@
-\n## Contact\nBuilt by [toodos](https://github.com/toodos)
-\n## License\nThis project is licensed under the MIT License.
+working demo is live : https://nexora-ylt5.onrender.com
 
 ## Contact
 Built by [toodos](https://github.com/toodos)
