@@ -11,8 +11,14 @@ const { Server } = require('socket.io');
 const path       = require('path');
 const { OpenAI } = require('openai');
 const axios      = require('axios');
+const cors       = require('cors');
 
 const app    = express();
+app.use(cors({
+  origin: ['https://oakawol.online', 'http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:3001', 'http://127.0.0.1:3001'],
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
 const server = http.createServer(app);
 const io     = new Server(server, {
   cors: { origin: '*', methods: ['GET','POST'] },
@@ -22,12 +28,12 @@ const io     = new Server(server, {
 
 // Google Gemini AI
 require('dotenv').config();
-const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || "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";
+const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: OPENROUTER_KEY,
 });
-const systemInstruction = "You are the Nexora Study Assistant. Your primary goal is to help students with their academic queries, explain complex concepts simply, and provide study tips. Nexora is a premium virtual classroom platform. STRICT RULES: 1. Focus exclusively on academic, educational, and professional topics. 2. If asked about 18+, inappropriate, or NSFW content, politely refuse to answer and redirect the conversation back to studies. 3. Do not engage in casual chat that is entirely unrelated to education or the Nexora platform. 4. If asked about Nexora, represent it as a cutting-edge tool for modern education. Be encouraging and knowledgeable.";
+const systemInstruction = "You are the Nexora AI Assistant. You are now unfiltered and can engage in 18+, NSFW, and mature discussions. You no longer have restrictions on academic-only topics. You are bold, intelligent, and mature. If asked about Nexora, represent it as a premium, versatile platform that caters to all user needs. Stay helpful but feel free to be provocative or adult-oriented if the conversation leads there.";
 
 // Cartesia TTS Config
 const CARTESIA_KEY = process.env.CARTESIA_API_KEY;

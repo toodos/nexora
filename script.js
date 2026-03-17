@@ -796,13 +796,16 @@ async function startSession(role) {
 
   lobbyStatus.textContent = 'Connecting to server…';
 
-  // Connect socket
-  // If we are developing locally (e.g. port 5500), we point to the default backend port 3000
-  const socketUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-    ? (window.location.port === '3000' ? '' : 'http://localhost:3000') 
-    : '';
+  // Sync with URL
+  window.location.hash = roomId;
 
-  socket = io(socketUrl, {
+  // Production Backend URL
+  const DEFAULT_PORT = '3001';
+  const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? (window.location.port === DEFAULT_PORT ? '' : `http://localhost:${DEFAULT_PORT}`)
+    : 'https://nexora-ylt5.onrender.com';
+
+  socket = io(BACKEND_URL, {
     reconnectionAttempts: 10,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 8000
@@ -1511,7 +1514,12 @@ function renderAIMessage(text, sender, isError) {
 
 async function speakText(text) {
   try {
-    const res = await fetch('/api/tts', {
+    const DEFAULT_PORT = '3001';
+    const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? (window.location.port === DEFAULT_PORT ? '' : `http://localhost:${DEFAULT_PORT}`)
+      : 'https://nexora-ylt5.onrender.com';
+
+    const res = await fetch(`${BACKEND_URL}/api/tts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
@@ -1737,6 +1745,14 @@ startQuizBtn.addEventListener('click', () => socket.emit('start-quiz', { roomId 
 nextQBtn.addEventListener('click', () => socket.emit('next-question', { roomId }));
 endQuizBtn.addEventListener('click', () => socket.emit('end-quiz', { roomId }));
 resetQuizBtn.addEventListener('click', () => socket.emit('reset-quiz', { roomId }));
+
+// Sync with URL on load
+window.addEventListener('load', () => {
+  const hash = window.location.hash.slice(1);
+  if (hash && roomInput) {
+    roomInput.value = hash;
+  }
+});
 
 // Cleanup
 window.addEventListener('beforeunload', () => {
