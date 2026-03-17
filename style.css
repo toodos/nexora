@@ -958,36 +958,84 @@ input:focus, textarea:focus {
 }
 
 @media (max-width: 900px) {
-  .lobby-wrap { flex-direction: column; gap: 40px; align-items: center; text-align: center; }
+  .lobby-wrap { flex-direction: column; gap: 40px; align-items: center; text-align: center; padding: 40px 20px; }
   .lobby-left { display: flex; flex-direction: column; align-items: center; }
-  .lobby-tagline { max-width: 100%; }
-  .lobby-features { align-items: center; }
+  .lobby-tagline { max-width: 100%; font-size: 16px; }
+  .lobby-headline { font-size: 42px; margin-bottom: 20px; }
+  .lobby-features { display: none; } /* Hide features on small screens to save space */
   .lobby-card { width: 100%; max-width: 440px; }
 
   .side-nav { display: none; }
+  .mobile-nav-btn { display: flex !important; }
+  
   .right-panel {
     position: fixed; right: 0; top: 0; bottom: 0;
-    width: 100%; max-width: 360px; z-index: 100;
+    width: 100%; max-width: 100%; z-index: 1000;
     transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bg-panel);
   }
-  .right-panel.open { transform: translateX(0); box-shadow: -10px 0 40px rgba(0,0,0,0.1); }
+  .right-panel.open { transform: translateX(0); }
+  
+  .rp-close-btn {
+    display: flex !important;
+    position: absolute; top: 12px; right: 16px;
+    width: 32px; height: 32px;
+    align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--text2);
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 10;
+  }
 
-  .teacher-tile { width: 100%; height: 300px; min-height: 0; }
-  .student-tile { width: calc(50% - 8px); height: 140px; }
+  .video-grid { 
+    display: flex; 
+    flex-wrap: wrap; 
+    align-content: flex-start; 
+    padding: 8px; 
+    gap: 8px; 
+    overflow-y: auto;
+  }
+  .teacher-tile { width: 100%; aspect-ratio: 16/9; min-height: 0; height: auto; }
+  .student-tile { width: calc(50% - 4px); aspect-ratio: 4/3; height: auto; }
 }
 
 @media (max-width: 600px) {
-  #lobbyScreen { padding: 24px; }
-  .lobby-headline { font-size: 40px; }
-  .lobby-card { padding: 32px 24px; }
-  .lc-actions { flex-direction: column; }
+  #lobbyScreen { padding: 0; }
+  .lobby-headline { font-size: 36px; }
+  .lobby-card { padding: 32px 20px; border-radius: 0; border: none; }
+  .lc-actions { flex-direction: column; gap: 12px; }
+  .btn-primary-lg, .btn-ghost-lg { width: 100%; }
 
+  .call-header { padding: 0 12px; height: 50px; }
   .call-header .ch-center { display: none; }
+  .ch-room-label { display: none; }
+  
+  .ctrl-bar { 
+    padding: 12px 10px; 
+    gap: 6px; 
+    justify-content: space-around;
+    padding-bottom: 24px; /* Space for home indicator on iOS */
+  }
+  .ctrl-btn { 
+    min-width: 44px; 
+    padding: 8px; 
+    flex-direction: column; 
+    gap: 4px;
+  }
+  .ctrl-btn span { font-size: 9px; }
+  .ctrl-sep { height: 20px; }
 
-  .teacher-tile { height: 220px; }
-  .student-tile { width: calc(50% - 4px); height: 110px; }
-
-  .ctrl-btn { min-width: 46px; padding: 8px 8px; font-size: 10px; }
+  /* Typography & Spacing Refinements */
+  h1 { font-size: 28px !important; }
+  h2 { font-size: 22px !important; }
+  .rp-tabs { gap: 8px; padding: 0 12px; height: 50px; }
+  .rp-tab { font-size: 12px; padding: 0 8px; }
+  .chat-messages, #panelQuiz, #panelParticipants, .ai-messages { padding: 12px !important; }
+  .q-card { padding: 14px; }
+  .ai-bubble { font-size: 13px; line-height: 1.4; }
 }
 
 /* ── Toast (Apple style) ────────────────────────────────────── */
@@ -1005,45 +1053,7 @@ input:focus, textarea:focus {
 /* ═══════════════════════════════════════════════════════════════
    RESPONSIVE
 ═══════════════════════════════════════════════════════════════ */
-@media (max-width: 1100px) {
-  .right-panel { width: 280px; }
-  .teacher-tile { width: calc(100% - 196px); }
-}
-
-@media (max-width: 900px) {
-  /* Side nav becomes bottom-hidden; use ctrl bar for nav */
-  .side-nav { display: none; }
-  .mobile-nav-btn { display: flex !important; }
-
-  /* Right panel slides in as overlay */
-  .right-panel {
-    position: fixed; right: 0; top: 0; bottom: 0;
-    width: 100%; max-width: 360px;
-    z-index: 100;
-    transform: translateX(100%);
-    border-left: 1px solid rgba(255,255,255,0.08);
-  }
-  .right-panel.open { transform: translateX(0); }
-
-  /* Video grid stacks vertically */
-  .teacher-tile { width: 100%; height: 260px; min-height: 0; }
-  .student-tile { width: calc(50% - 4px); height: 130px; }
-  .video-grid { align-content: flex-start; overflow-y: auto; }
-}
-
-@media (max-width: 600px) {
-  .lobby-wrap { grid-template-columns: 1fr; gap: 28px; }
-  .lobby-left { display: none; }
-  .lobby-card { padding: 24px 18px; }
-  .lc-actions { flex-direction: column; }
-
-  .call-header .ch-center { display: none; }
-
-  .teacher-tile { height: 220px; }
-  .student-tile { width: calc(50% - 4px); height: 110px; }
-
-  .ctrl-btn { min-width: 46px; padding: 8px 8px; font-size: 10px; }
-}
+/* Consolidated Response styles handled above */
 
 /* ─────────────────────────────────────────────────────────
    AI ASSISTANT

@@ -1767,6 +1767,8 @@ aiToggle?.addEventListener('change', () => {
   socket?.emit('toggle-ai', { enabled: aiToggle.checked });
 });
 
+document.getElementById('closeRightPanelBtn')?.addEventListener('click', closeRightPanel);
+
 // Sync with URL on load
 window.addEventListener('load', () => {
   const hash = window.location.hash.slice(1);
